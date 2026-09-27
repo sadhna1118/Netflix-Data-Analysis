@@ -13,6 +13,8 @@
 ![PyTest](https://img.shields.io/badge/PyTest_Passed-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)
 
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://share.streamlit.io/deploy?repository=sadhna1118/Netflix-Data-Analysis&branch=main&mainModule=app%2Fstreamlit_app.py)
+
 **Transforming raw streaming metadata into actionable C-suite strategy, interactive intelligence dashboards, and machine learning recommendations.**
 
 [🚀 Quick Start](#-quick-start) • [✨ Key Features](#-key-features) • [🏛️ Architecture](#-system-architecture) • [📊 Visual Insights](#-visual-insights-gallery) • [💾 SQL Studio](#-sql-business-analytics-studio) • [🤖 ML Recommender](#-ai-content-recommendation-engine) • [💼 Resume & Interview Prep](#-resume--interview-talking-points)
