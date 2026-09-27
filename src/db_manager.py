@@ -180,7 +180,7 @@ BUSINESS_QUERIES: Dict[str, Dict[str, str]] = {
         """
     },
     "12. Director & Actor Power Duos": {
-        "description": "Frequent director-actor collaborations on Netflix.",
+        "description": "Frequent director-actor collaborations on Netflix (3+ shared projects).",
         "sql": """
         SELECT 
             td.director AS Director,
@@ -193,6 +193,69 @@ BUSINESS_QUERIES: Dict[str, Dict[str, str]] = {
         HAVING Collaborative_Works >= 3
         ORDER BY Collaborative_Works DESC
         LIMIT 15;
+        """
+    },
+    "13. Multi-Country Co-Productions": {
+        "description": "Cross-border collaborative titles produced by 2 or more countries.",
+        "sql": """
+        SELECT 
+            show_id,
+            title,
+            type,
+            release_year,
+            country_clean AS Production_Countries,
+            num_countries
+        FROM netflix_titles
+        WHERE num_countries > 1
+        ORDER BY num_countries DESC, release_year DESC
+        LIMIT 15;
+        """
+    },
+    "14. Direct-to-Platform Speed (Added in Release Year)": {
+        "description": "Fresh content added in the exact same year it was theatrically/broadcast released.",
+        "sql": """
+        SELECT 
+            release_year AS Release_Year,
+            COUNT(*) AS Same_Year_Additions,
+            SUM(CASE WHEN type = 'Movie' THEN 1 ELSE 0 END) AS Movies,
+            SUM(CASE WHEN type = 'TV Show' THEN 1 ELSE 0 END) AS TV_Shows,
+            ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM netflix_titles WHERE year_added = release_year), 2) AS Share_Of_Fresh_Additions
+        FROM netflix_titles
+        WHERE year_added = release_year AND release_year >= 2015
+        GROUP BY release_year
+        ORDER BY release_year DESC;
+        """
+    },
+    "15. Vintage Classics in Catalog (Pre-1980)": {
+        "description": "Oldest historic films and series preserved in Netflix's global library.",
+        "sql": """
+        SELECT 
+            title,
+            type,
+            release_year,
+            country_clean AS Country,
+            rating,
+            duration,
+            listed_in AS Genres
+        FROM netflix_titles
+        WHERE release_year < 1980
+        ORDER BY release_year ASC
+        LIMIT 15;
+        """
+    },
+    "16. Genre Distribution Across Content Types": {
+        "description": "Comprehensive matrix of genres split across Movies vs TV Shows.",
+        "sql": """
+        SELECT 
+            genre AS Genre_Name,
+            COUNT(*) AS Total_Titles,
+            SUM(CASE WHEN type = 'Movie' THEN 1 ELSE 0 END) AS Movies_Count,
+            SUM(CASE WHEN type = 'TV Show' THEN 1 ELSE 0 END) AS TV_Shows_Count,
+            ROUND(AVG(release_year), 0) AS Avg_Release_Year
+        FROM title_genres
+        GROUP BY genre
+        ORDER BY Total_Titles DESC
+        LIMIT 20;
         """
     }
 }
@@ -215,3 +278,17 @@ class NetflixDBManager:
     def get_preset_queries(self) -> Dict[str, Dict[str, str]]:
         """Return library of business intelligence SQL queries."""
         return BUSINESS_QUERIES
+
+    def get_tables_info(self) -> Dict[str, List[Dict[str, Any]]]:
+        """Return table schemas and columns."""
+        info = {}
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+            tables = [row[0] for row in cursor.fetchall()]
+            for table in tables:
+                cursor.execute(f"PRAGMA table_info({table});")
+                cols = cursor.fetchall()
+                info[table] = [{'cid': c[0], 'name': c[1], 'type': c[2], 'notnull': c[3]} for c in cols]
+        return info
+
